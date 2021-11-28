@@ -1,0 +1,499 @@
+
+
+1. Crear el tema con HTML, CSS y JS.
+2. Meter la carpeta del desarrollo en wp-content/themes
+3. Sacar el style.css de nuestro tema a la raiz del tema y añadirle las cabeceras para wordpress.
+4. Crear el archivo index.php
+5. Crear el archivo functions.php
+6. Carga los Scripts y el CSS del theme en functions.php
+
+    ```php
+    function edc_scripts() {
+        /** Styles **/
+        /*Parametros: 1)Poner un nombre/identidicador. 2)Dirección del tema. 3)Dependencias. 4)Versión */
+        wp_enqueue_style('bootstrap-css', get_template_directory_uri() . '/css/bootstrap.css', false, '5.1.3');
+
+        /* Llama a la hoja de estilos style.css */
+        /*get_stylesheet_uri retorna la ruta de la hoja de estilos directamente */
+        /* Como dependencia le pasamos bootstrap-css para que primero cargue bootstrap y lugo la hoja de estilos */
+        wp_enqueue_style('style', get_stylesheet_uri(), array('bootstrap-css'));
+
+        /** Scripts **/
+        /* Asi ya cargaria jquery, porque jquery es parte de wordpress */
+        wp_enqueue_script('jquery');
+
+        /* El parametro true es para que el script se añada en el footer */
+        wp_enqueue_script('popper', get_template_directory_uri() . '/js/popper.js', array('jquery'), '1.0', true);
+        wp_enqueue_script('bootstrap-js', get_template_directory_uri() . '/js/bootstrap.js', array('popper'), '1.0', true);
+    }
+
+    /* Añade la función en un hook */
+    add_action('wp_enqueue_scripts', 'edc_scripts');
+    ```
+7. Crear el archivo header.php .
+    7.1. Incluir toda la cabecera de nuestro index.html
+    7.2. Quitar etiqueta de titulo.
+    7.3. Añadir la función wp_head() que añade cabeceras de wordpress;
+
+        ```html
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+            <?php wp_head(); ?>
+
+        </head>
+        <body>
+
+        <header class="header py-5">
+                <div class="container">
+                    <div class="row justify-content-center align-items-center">
+                        <div class="col-md-4 col-8 mb-4 mb-mb-0">
+                            <a href="index.html">
+                                <img src="img/logo.svg" alt="Logo" class="img-fluid">
+                            </a>
+                        </div>
+                        <div class="col-md-8">
+                            <nav class="navbar navbar-expand-md navbar-light justify-content-center">
+                                <button class="navbar-toggler mb-4" data-toggle="collapse" data-target="#nav_principal" 
+                                aria-expanded="false" type="button">
+                                    <span class="navbar-toggler-icon"></span>
+                                </button>
+                                <div id="nav_principal" class="collapse navbar-collapse justify-content-center 
+                                justify-content-lg-end text-uppercase">
+                                    <a href="nosotros.html" class="nav-link">Nosotros</a>
+                                    <a href="blog.html" class="nav-link">Blog</a>
+                                    <a href="clases.html" class="nav-link">Clases</a>
+                                    <a href="galeria.html" class="nav-link">Galería</a>
+                                    <a href="contacto.html" class="nav-link">Contacto</a>
+                                </div> <!-- #nav-principal -->
+                            </nav>
+                        </div><!-- col-md-8 -->
+                    </div><!-- .row -->
+                </div><!-- container -->
+            </header>
+        ```
+    7.4. Añadir en el index.php la función get_header(); para mostrar el header
+
+        ```php
+        <?php
+
+            /* Para incluir lo que esta en el header.php */
+            get_header();
+
+        ?>
+    
+        ```
+8. Crear el archivo footer.php y añadir el código de el footer de nuestro template.
+    8.1. Sustituir los scripts js por la función wp_footer().
+
+    ````html
+            <footer class="footer p-5">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <nav class="text-uppercase d-flex flex-column flex-md-row text-center text-md-left">
+                                    <a href="nosotros.html" class="nav-link">Nosotros</a>
+                                    <a href="blog.html" class="nav-link">Blog</a>
+                                    <a href="clases.html" class="nav-link">Clases</a>
+                                    <a href="galeria.html" class="nav-link">Galería</a>
+                                    <a href="contacto.html" class="nav-link">Contacto</a>
+                                </nav>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-center text-md-right copyright mt-4 mt-md-0">Todos los derechos reservados</p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+
+                <?php wp_footer(); ?>
+            </body>
+        </html>
+        ``` 
+    8.2. Incluir la función wp_footer() en el index.php
+
+        ```php
+
+        /* Para incluir lo que esta en el header.php */
+        get_header();
+
+
+        /* Para incluir lo que esta en el footer.php */
+        get_footer();
+
+        ```
+        
+9. Añadir el menu en functions.php
+    ```php
+    function edc_setup() {
+
+        //Menu de navegación
+        /* Podemos registrar todos los menus que queramos, añadiendolos a un array associativo 
+        primer parametro para que lo entienda la máquina y el segundo para nosotros, este dentro 
+        de una función de wordpress para la seguridad esc_html__(), separando por una coma podemos
+        añdir más menus */
+        register_nav_menus ( array(
+            'menu_principal' => esc_html__('Menu Principal', 'escueladecocina')
+        ));
+
+    }
+    add_action('after_setup_theme', 'edc_setup');
+    ```
+
+10. Pasamos nuestro menu estatico del header.php a dinamico con las funciones de wordpress
+    ```php
+    <?php
+        $args = array(
+            'menu_class'     => 'nav nav-justified flex-column flex-md-row text-center', // otras clases que se agregan
+            'container_id'   => 'nav_principal', // hace referecia al div donde esta el menu, le pasamos el id de el div
+            'continer_class' => 'collapse navbar-collapse justify-content-center', // las clases del div del menu
+            'theme_location' => 'menu_principal' //el tema registrado en functions.php que quieres mostrar
+        );
+
+        wp_nav_menu($args);
+    ?>
+    ```
+11. Agregar la clase nav-link de bootstrap al menu principal
+
+    ```php
+    function edc_enlace_class($atts, $item, $args) {
+        // Si el menu es igual a 'menu_principal' entonces ejecutame este código y devuelveme todos los atributos de los enlaces
+        if($args->theme_location == 'menu_principal') {
+            $atts['class'] = 'nav-link';
+        }
+        return $attr;
+
+    }
+    /**
+    * Parametros: 1)nombre del filter, 2)nombre de la función, 3)tiempo de ejecución (10 es por defecto), 
+    * 4)número de parametros que le pasamos a la función por defecto
+    */
+    add_filter('nav_menu_link_attributes', 'edc_enlace_class', 10, 3);
+    ```
+
+12. Desde el backoffice ya podemos crear el menu.
+
+13. Pasamos el menu estatico del footer.php a dinamico.
+    
+    ```php
+    <?php
+        $args = array(
+            'menu_class' => 'nav text-uppercase d-flex flex-column flex-md-row text-center text-md-left', // las clases del div del menu
+                'theme_location' => 'menu_principal' //el tema registrado en functions.php que quieres mostrar
+        );
+
+        wp_nav_menu($args);
+    ?>
+    ```
+14. Podemos añadir el año actual en el footer 
+
+    ```html
+    <div class="col-md-6">
+        <p class="text-center text-md-right copyright mt-4 mt-md-0">Todos los derechos reservados<?php echo date('Y'); ?></p>
+    </div>
+    ```
+15. Añadir ruta de la imagen del header y link
+
+    ```html
+    <div class="col-md-4 col-8 mb-4 mb-mb-0">
+        <!-- Url que apunta a la home con la función de seguridad de wordpress exc_url()-->
+        <a href="<?php echo esc_url( home_url('/'));?>">
+            <!--Obtener la imagen del header-->
+            <img src="<?php echo get_template_directory_uri(); ?>/img/logo.svg" alt="Logo" class="img-fluid">
+        </a>
+    </div>
+    ```
+
+16. Establecer en el backoffice una página de inicio
+17. Cambiar el nombre a nuestro archivo inicial del tema (index.html) por front-page.php
+18. Añadir en el header.php la función body_class() que dependiendo de la página que sea le agregara una clase
+    por ejemplo para la página principal le agregara la clase index.
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+        <?php wp_head(); ?>
+
+    </head>
+    <body <?php body_class(); ?>>
+    ```
+    NOTA: Si en body hemos creado una clase y utilizada para dar estilo en la maqueta inicial mirar de si el nombre que
+    le hemos dado coincide con el que le habra dado ahora wordpress despues de añadir la función body_class() sino tendremos 
+    que cambiarlo en nuestra hoja de estilos por el que le haiga puesto wordpress.
+
+19. Al archivo front-page.php añadirle la función get_header() y get_footer() y eliminar todo lo del header y footer.
+
+    ```php
+    <?php get_header(); ?>
+    <?php get_footer(); ?>
+    ```
+20. Descargamos CMB2 en GitHub, lo descomprimimos en el template y sacamos el archivo example-functions.php a la raiz del tema.
+21. Renombramos el archivo example-functions.php a cmb2.php(por organización). Agregamos CMB2 requiriendolo desde el functions.php
+```php
+require_once dirname(__FILE__) . '/cmb2.php';
+```
+22. Creamos en el tema la carpeta inc para meter los includes.
+23. En el directorio inc creamos el archivo custom-fields.php (para carga de campos personalizados)
+24. Primero se crea el box y luego le vamos añadiendo los campos que queramos.
+    24.1. Cambiar nombre de la función para evitar colisiones.
+    24.2. Establecer un prefijo.
+    24.3. Es el caso de la home obtener el id de esta página de forma dinámica. Importante haber declarado una página estatica en el backoffice
+          de wordpress ya que lo obtiene de aqui.
+    24.4. Establecer las configuraciones necesarias en el box.
+    24.5. Añadir los campos que necesitemos y configurarlos.
+    ```php
+    /**
+    * Metaboxes para el Homepage
+    */
+
+    add_action( 'cmb2_admin_init', 'edc_campos_homepage' ); // poner un nombre a la función para que no choque con otras
+    /**
+    * Hook in and add a metabox that only appears on the 'About' page
+    */
+    function edc_campos_homepage() {
+        // Establecemos un prefijo para evitar colisiones
+        $prefix = 'edc_homepage';
+
+        // Nos va a decir en que id se crea la página principal
+        $id_home = get_option('page_on_front');
+
+        /**
+        * Metabox to be displayed on a single page ID
+        */
+        // Esto es el box, se crea primero
+        $edc_campos_homepage = new_cmb2_box( array( // cambiamos el valor de la variable a uno personalizado
+            'id'           => $prefix . 'homepage', //añade un prefijo personlizado para que no choque con otros
+            'title'        => esc_html__( 'Campos Homepage', 'cmb2' ), // podemos cambiar el titulo
+            'object_types' => array( 'page' ), // Post type
+            'context'      => 'normal',
+            'priority'     => 'high',
+            'show_names'   => true, // Show field names on the left
+            'show_on'      => array(
+                'id' => array( $id_home ),
+            ), // Specific post IDs to display this metabox
+        ) );
+
+        // Luego le podemos ir agregando campos
+        // Establece el texto principal superior de la home
+        $edc_campos_homepage->add_field( array(
+            'name'    => esc_html__( 'Texto Superior 1', 'cmb2' ),
+            'desc'    => esc_html__( 'Texto para la parte superior del sitio web', 'cmb2' ),
+            'id'      => $prefix . 'texto_superior_1',
+            'type'    => 'wysiwyg',
+            'options' => array(
+                'textarea_rows' => 5,
+            ),
+        ) );
+
+        $edc_campos_homepage->add_field( array(
+            'name' => esc_html__( 'Imagen Hero 1', 'cmb2' ),
+            'desc' => esc_html__( 'Primera imagen para la parte superior', 'cmb2' ),
+            'id'   => $prefix . 'imagen_superior_1',
+            'type' => 'file',
+        ) );
+
+        // Establece el texto secundario superior de la home
+        $edc_campos_homepage->add_field( array(
+            'name'    => esc_html__( 'Texto Superior 2', 'cmb2' ),
+            'desc'    => esc_html__( 'Texto para la parte superior del sitio web', 'cmb2' ),
+            'id'      => $prefix . 'texto_superior_2',
+            'type'    => 'wysiwyg',
+            'options' => array(
+                'textarea_rows' => 5,
+            ),
+        ) );
+
+        $edc_campos_homepage->add_field( array(
+            'name' => esc_html__( 'Imagen Hero 2', 'cmb2' ),
+            'desc' => esc_html__( 'Primera imagen para la parte superior', 'cmb2' ),
+            'id'   => $prefix . 'imagen_superior_2',
+            'type' => 'file',
+        ) );
+    }
+    ```
+25. Rellenamos en el backoffice los campos creados.
+26. Asociamos los campos creados en el backoffice con el html.
+    ```php
+    <?php get_header(); ?>
+
+        <?php while(have_posts()): the_post(); ?>
+
+        // contenido html de front-page.php
+
+        // Enlazamos texto con el campo creado en el backoffice para tal texto
+        <div class="contenido text-center py-3">
+            /*<h2 class="text-uppercase">Sobre Nosotros</h2>
+            <p>
+                Nos respaldan, siempre ofertando los mejores cursos para principiantes y expertos
+            </p>
+            <p>
+                Nos respaldan, siempre ofertando los mejores cursos para principiantes y expertos
+            </p>*/
+            <?php echo get_post_meta(get_the_ID(), 'edc_homepage_texto_superior_2', true)?>
+        </div>
+
+
+        /*Como la imagen la hemos insertado mediante bg de css, la forma que tenemos para integrarla con 
+        nuestro campo personalizado es elimininando esa clase y pasandole la ruta en un estilo en linea.
+        Tendremos que crear otra clase con los estilos que tenia la que hemos eliminado para pasarle 
+        estos estilos a las imágenes y que no los pierdan*/
+        //<div class="col-md-6 bg-comida"></div>
+            <div class="col-md-6 imagen-fondo" style="background-image:url(<?php echo get_post_meta(get_the_ID(), 'edc_homepage_imagen_superior_2', true) ?>);"></div>
+
+    <?php endwhile; ?>
+    <?php get_footer(); ?>
+    ```
+
+27. Snipeat para poder consultar todos los campos que nos trae el metabox y ver los id's de forma fácil(en los archivos de la vista como front-page.php)
+    ```php
+    <!-- Snipeat para ver todos los metaboxes, mediante esta función nos retorna todos meta values (todos los datos que esten almacenados
+         en un metabox de determinado $post_id (con la función get_the_ID() coje el id dinamicamente-->
+    <?php printf('<pre>%s</pre>', var_export(get_post_custom(get_the_ID() ), true ) ); ?>
+    ```
+
+28. Agregar links
+    ```php
+    <!-- devuelve un objeto-->
+        <?php $contacto = get_page_by_title('Contacto'); 
+            /* var_dump() si permite ver todos los datos de un objeto, asi podemos consultar el id 
+            de la página contacto en este caso*/
+            /*echo "<pre>";
+            var_dump($contacto);
+            echo "</pre>";*/
+        ?> 
+
+    <a href="<?php echo get_permalink($contacto->ID); ?>" class="btn btn-primary text-uppercase">Más Información</a>
+    ```
+29. Muestra el contenido desde el editor de wordpress de la página
+    ```php
+    <div class="row justify-content-center">
+        <div class="col-md-8 py-3 px-5 contenido-nosotros bg-light">
+            /*Muestra titulo de la página*/
+            <h1 class="text-center my-5 separador"><?php the_title(); ?></h1>
+            /*Muestra el contenido desde el editor de wordpress de la página*/
+            <?php the_content();?>
+        </div>
+    </div><!--.row-->
+    ```
+30. Añade imagen destacada al backoffice. (functions.php)
+    ```php
+    add_theme_support('post-thumbnails');
+    ```
+31. Imagen destacada para páginas. (functions.php)
+    ```php
+    // 'init' hook para cuando inicia wp
+    add_action('init', 'edc_imagen_destacada' );
+    function edc_imagen_destacada($id) {
+        // recupera la ruta de la imagen, tamaño
+        $imagen = get_the_post_thumbnail_url($id, 'full');
+
+        // solo se genera si hay imagen
+        $html = '';
+        $clase = false; // inicializada a false
+        if($imagen) {
+            $clase = true; // si hay imagen la pone a true
+            $html .= '<div class="container">';
+            $html .=    '<div class="row imagen-destacada"></div>';
+            $html .= '</div>';
+
+            // Agregar estilos linealmente
+            wp_register_style('custom', false); // false por que el archivo no va a existir en el tema
+            wp_enqueue_style('custom');
+
+            //creamos el css para el custom
+            $imagen_destacada_css = "
+                .imagen-destacada {
+                    background-image: url( {$imagen});
+                }
+            ";
+            wp_add_inline_style('custom', $imagen_destacada_css);
+
+        }
+        // si no hay imagen devuelve el $html vacio
+        return array($html, $clase);
+    }
+    ```
+32. Función para mostrar la imagen destacada en la página. Y cambiar el tamaño del contenedor del contenido en función de si hay 
+    imagen o no. (page.php)
+    ```php
+    <?php $html = edc_imagen_destacada( get_the_ID() ); 
+        // $html[0] retorna el html
+        // $html[1] retorna si la imagen existe
+        echo $html[0];
+    ?>
+    ```
+
+    ```php
+    <!--comprueba si hay imagen o no (con un ternario) si hay imagen añade la clase col-md-8 para centrarlo y la clase destacada para añadirle un margen superior y si no hay imagen le agrega la imagen col-md-12 para que ocupe todo el espacio y la clase no-destacada para quitar margen superior-->
+    <div class="py-3 px-5 contenido-pagina bg-light <?php echo $html[1] ? 'col-md-8 destacada' : 'col-md-12 no-destacada' ?>">
+        <h1 class="text-center my-5 separador"><?php the_title(); ?></h1>
+    ```
+
+33. Viene cremita, lo que teniamos en page.php creamos una nueva carpeta en la raíz "template-parts" y el archivo contenido-paginas.php donde metemos 
+    lo que tenemos en page.php.
+    ```php
+    <?php
+
+    //Función para mostrar la imagen destacada
+    $html = edc_imagen_destacada( get_the_ID() ); 
+        // $html[0] retorna el html
+        // $html[1] retorna si la imagen existe
+        echo $html[0];
+    ?>
+
+    <main class="container">
+        <div class="row justify-content-center">
+            <!--<div class="col-md-8 py-3 px-5 contenido-nosotros bg-light">-->
+            <!--comprueba si hay imagen o no (con un ternario) si hay iamgen añade la clase col-md-8 para centrarlo
+                y si no hay imagen le agrega la imagen col-md-12 para que ocupe todo el espacio-->
+            <div class="py-3 px-5 contenido-pagina bg-light <?php echo $html[1] ? 'col-md-8 destacada' : 'col-md-12 no-destacada' ?>">
+                <h1 class="text-center my-5 separador"><?php the_title(); ?></h1>
+                <!--Muestra el contenido desde el editor de wordpress de la página-->
+                <?php the_content();?>
+            </div>
+        </div><!--.row-->
+    </main>
+    ```
+34. Y ahora en page.php lo que hacemos es llamar a este archivo contenido-paginas.php
+```php
+<?php get_header(); ?>
+
+<?php while(have_posts()): the_post(); 
+
+    get_template_part('template-parts/contenido', 'paginas');
+
+endwhile; ?>
+
+<?php get_footer(); ?>
+```
+35. page.php es un template de página comun la estamos usando en nosotros y en contacto. Para nosotros vamos a crear un nuevo archivo en la raiz
+    page-iconos.php (este template sera para la página de nosotros) añadimos el codigo y en el backoffice de wp elegimos esta plantilla para nosotros.
+    ```php
+    <?php 
+
+    /**
+    * Template Name: Página com iconos
+    */
+
+
+    get_header(); ?>
+
+    <?php while(have_posts()): the_post(); 
+
+        get_template_part('template-parts/contenido', 'paginas');
+
+        echo "<h1> desde iconos</h1>";
+
+    endwhile; ?>
+
+    <?php get_footer(); ?>
+    ```
